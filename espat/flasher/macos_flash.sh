@@ -3,7 +3,7 @@
 # Exit on the first error.
 set -e
 
-DEV_PATH_TTY=/dev/tty.usbmodem141101
+DEV_PATH_TTY=/dev/tty.usbmodem141201
 
 # Flash the pass-through firmware.
 # The binary has been created following the procedure over at
@@ -31,4 +31,4 @@ python $HOME/.pyenv/versions/2.7.15/lib/python2.7/site-packages/esptool.py \
     --after hard_reset write_flash -z \
     --flash_mode dio \
     --flash_freq 40m \
-    --flash_size detect 0x10000 ota_data_initial.bin 0x1000 bootloader.bin 0x20000 at_customize.bin 0x24000 server_cert.bin 0x26000 server_key.bin 0x28000 server_ca.bin 0x2a000 client_cert.bin 0x2c000 client_key.bin 0x2e000 client_ca.bin 0x30000 factory_param.bin 0xf000 phy_init_data.bin 0x100000 esp-at.bin 0x8000 partitions_at.bin
+    --flash_size detect 0x10000 ota_data_initial.bin 0x1000 bootloader.bin 0x20000 at_customize.bin 0x21000 ble_data.bin 0x24000 server_cert.bin 0x25000 server_key.bin 0x26000 server_ca.bin 0x27000 client_cert.bin 0x28000 client_key.bin 0x29000 client_ca.bin 0x2a000 factory_param.bin 0xf000 phy_init_data.bin 0x40000 esp-at.bin 0x8000 partitions_at.bin
