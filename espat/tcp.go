@@ -2,6 +2,7 @@ package espat
 
 import (
 	"errors"
+	"net"
 	"strconv"
 	"strings"
 )
@@ -13,6 +14,15 @@ const (
 	TCPTransferModeNormal      = 0
 	TCPTransferModeUnvarnished = 1
 )
+
+var (
+	ErrTooManyConnections = errors.New("espat: too many open connections")
+	ErrUnknownNetwork     = errors.New("espat: unknown network")
+)
+
+type Conn struct {
+	device *Device
+}
 
 // GetDNS returns the IP address for a domain name.
 func (d *Device) GetDNS(domain string) (string, error) {
@@ -32,9 +42,57 @@ func (d *Device) GetDNS(domain string) (string, error) {
 	return res[0], nil
 }
 
-// ConnectTCPSocket creates a new TCP socket connection for the ESP8266/ESP32.
+// Dial connects to the address on the named network.
+func (d *Device) Dial(network, address string) (net.Conn, error) {
+	switch network {
+	case "tcp":
+		addr, port, err := net.SplitHostPort(address)
+		if err != nil {
+			return nil, err
+		}
+		err = d.connectTCPSocket(addr, port)
+		if err != nil {
+			return nil, err
+		}
+		return &Conn{device: d}, nil
+	default:
+		return nil, ErrUnknownNetwork
+	}
+}
+
+// Close closes the current network connection, freeing the used resources.
+func (c *Conn) Close() error {
+	return c.device.disconnectSocket()
+}
+
+// Read reads data from the connection.
+func (c *Conn) Read(b []byte) (n int, err error) {
+	return c.device.ReadSocket(b)
+}
+
+// Write writes data to the connection.
+func (c *Conn) Write(b []byte) (n int, err error) {
+	err = c.device.StartSocketSend(len(b))
+	if err != nil {
+		return
+	}
+	n, err = c.device.Write(b)
+	if err != nil {
+		return n, err
+	}
+	_, err = c.device.Response(1000)
+	if err != nil {
+		return n, err
+	}
+	return n, err
+}
+
+// connectTCPSocket creates a new TCP socket connection for the ESP8266/ESP32.
 // Currently only supports single connection mode.
-func (d *Device) ConnectTCPSocket(addr, port string) error {
+func (d *Device) connectTCPSocket(addr, port string) error {
+	if d.connected {
+		return ErrTooManyConnections
+	}
 	protocol := "TCP"
 	val := "\"" + protocol + "\",\"" + addr + "\"," + port + ",120"
 	err := d.Set(TCPConnect, val)
@@ -50,6 +108,9 @@ func (d *Device) ConnectTCPSocket(addr, port string) error {
 
 // ConnectUDPSocket creates a new UDP connection for the ESP8266/ESP32.
 func (d *Device) ConnectUDPSocket(addr, sendport, listenport string) error {
+	if d.connected {
+		return ErrTooManyConnections
+	}
 	protocol := "UDP"
 	val := "\"" + protocol + "\",\"" + addr + "\"," + sendport + "," + listenport + ",2"
 	err := d.Set(TCPConnect, val)
@@ -77,8 +138,8 @@ func (d *Device) ConnectSSLSocket(addr, port string) error {
 	return nil
 }
 
-// DisconnectSocket disconnects the ESP8266/ESP32 from the current TCP/UDP connection.
-func (d *Device) DisconnectSocket() error {
+// disconnectSocket disconnects the ESP8266/ESP32 from the current TCP/UDP connection.
+func (d *Device) disconnectSocket() error {
 	err := d.Execute(TCPClose)
 	if err != nil {
 		return err

@@ -24,8 +24,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"tinygo.org/x/drivers/net"
 )
 
 // Device wraps UART connection to the ESP8266/ESP32.
@@ -37,20 +35,15 @@ type Device struct {
 
 	// data received from a TCP/UDP connection forwarded by the ESP8266/ESP32
 	socketdata []byte
-}
 
-// ActiveDevice is the currently configured Device in use. There can only be one.
-var ActiveDevice *Device
+	// connected indicates whether a connection is established.
+	// TODO: support multiple connections at a time.
+	connected bool
+}
 
 // New returns a new espat driver. Pass in a fully configured UART bus.
 func New(b machine.UART) *Device {
 	return &Device{bus: b, response: make([]byte, 512), socketdata: make([]byte, 0, 1024)}
-}
-
-// Configure sets up the device for communication.
-func (d Device) Configure() {
-	ActiveDevice = &d
-	net.ActiveDevice = ActiveDevice
 }
 
 // Connected checks if there is communication with the ESP8266/ESP32.
