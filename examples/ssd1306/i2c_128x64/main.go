@@ -1,3 +1,5 @@
+// +build microbit xiao 
+
 // This example shows how to use 128x64 display over I2C
 // Tested on Seeeduino XIAO Expansion Board https://wiki.seeedstudio.com/Seeeduino-XIAO-Expansion-Board/
 //

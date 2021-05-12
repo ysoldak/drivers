@@ -1,3 +1,6 @@
+// +build arduino_nano33 
+
+
 // This example connects to Access Point and prints some info
 package main
 

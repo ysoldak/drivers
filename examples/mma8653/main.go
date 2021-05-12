@@ -1,3 +1,5 @@
+// +build itsybitsy_m0 
+
 // Connects to an MMA8653 I2C accelerometer.
 package main
 

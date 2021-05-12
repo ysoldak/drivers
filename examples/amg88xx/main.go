@@ -1,3 +1,5 @@
+// +build pybadge 
+
 package main
 
 import (

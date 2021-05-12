@@ -1,3 +1,5 @@
+// +build hifive1b 
+
 package main
 
 import (

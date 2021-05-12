@@ -1,3 +1,5 @@
+// +build pybadge 
+
 // This example is designed to implement the button shifter for a PyBadge.
 package main
 

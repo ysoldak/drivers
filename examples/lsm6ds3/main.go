@@ -1,3 +1,5 @@
+// +build arduino_nano33 
+
 // Connects to an LSM6DS3 I2C a 6 axis Inertial Measurement Unit (IMU)
 package main
 

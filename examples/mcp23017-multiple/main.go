@@ -1,3 +1,5 @@
+// +build itsybitsy_m0 
+
 // This example demonstrates putting several mcp23017 devices together into
 // a single virtual I/O array.
 package main

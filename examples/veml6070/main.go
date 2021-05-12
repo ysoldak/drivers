@@ -1,3 +1,5 @@
+// +build trinket_m0 
+
 package main
 
 import (

@@ -1,3 +1,5 @@
+// +build arduino_nano33 
+
 // This is a sensor station that uses a ESP32 running nina-fw over SPI.
 // It creates a UDP connection you can use to get info to/from your computer via the microcontroller.
 //

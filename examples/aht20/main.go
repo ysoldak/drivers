@@ -1,3 +1,5 @@
+// +build nucleo_l432kc 
+
 package main
 
 import (

@@ -1,3 +1,5 @@
+// +build circuitplay_express 
+
 // Connects to a LIS3DH I2C accelerometer on the Adafruit Circuit Playground Express.
 package main
 

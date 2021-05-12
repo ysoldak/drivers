@@ -1,3 +1,5 @@
+// +build itsybitsy_m0 
+
 // Connects to an MPU6050 I2C accelerometer/gyroscope.
 package main
 

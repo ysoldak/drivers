@@ -1,3 +1,5 @@
+// +build arduino_nano33 
+
 // This example opens a TCP connection using a device with WiFiNINA firmware
 // and sends some data, for the purpose of testing speed and connectivity.
 //

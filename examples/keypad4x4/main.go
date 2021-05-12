@@ -1,3 +1,5 @@
+// +build arduino 
+
 package main
 
 import (

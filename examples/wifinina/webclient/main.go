@@ -1,3 +1,5 @@
+// +build arduino_nano33 
+
 // This example opens a TCP connection using a device with WiFiNINA firmware
 // and sends a HTTP request to retrieve a webpage, based on the following
 // Arduino example:

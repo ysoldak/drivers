@@ -1,3 +1,5 @@
+// +build arduino_nano33 
+
 package main
 
 import (

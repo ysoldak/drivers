@@ -1,3 +1,5 @@
+// +build arduino_nano33 
+
 // This is an example of using the wifinina driver to implement a NTP client.
 // It creates a UDP connection to request the current time and parse the
 // response from a NTP server.

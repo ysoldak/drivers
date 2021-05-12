@@ -1,3 +1,5 @@
+// +build arduino_nano33 
+
 // This is a sensor hub that uses a ESP8266/ESP32 running on the device UART1.
 // It creates a UDP "server" you can use to get info to/from your computer via the microcontroller.
 //

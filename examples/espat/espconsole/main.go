@@ -1,3 +1,5 @@
+// +build arduino_nano33 
+
 // This is a console to a ESP8266/ESP32 running on the device UART1.
 // Allows you to type AT commands from your computer via the microcontroller.
 //

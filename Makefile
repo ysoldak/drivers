@@ -1,196 +1,34 @@
 
 clean:
 	@rm -rf build
+	@rm *.mk
 
 FMT_PATHS = ./*.go ./examples/**/*.go
 
 fmt-check:
 	@unformatted=$$(gofmt -l $(FMT_PATHS)); [ -z "$$unformatted" ] && exit 0; echo "Unformatted:"; for fn in $$unformatted; do echo "  $$fn"; done; exit 1
 
-smoke-test:
-	@mkdir -p build
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/adt7410/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/adxl345/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=pybadge ./examples/amg88xx
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/apa102/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/apa102/itsybitsy-m0/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/at24cx/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/bh1750/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/blinkm/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/bmi160/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/bmp180/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/bmp280/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=trinket-m0 ./examples/bmp388/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=bluepill ./examples/ds1307/sram/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=bluepill ./examples/ds1307/time/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/ds3231/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/easystepper/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/espat/espconsole/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/espat/esphub/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/espat/espstation/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/flash/console/spi
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=pyportal ./examples/flash/console/qspi
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=feather-m0 ./examples/gps/i2c/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=feather-m0 ./examples/gps/uart/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/hcsr04/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/hd44780/customchar/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/hd44780/text/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/hd44780i2c/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/hub75/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=pyportal ./examples/ili9341/basic
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=xiao ./examples/ili9341/basic
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=pyportal ./examples/ili9341/pyportal_boing
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=pyportal ./examples/ili9341/scroll
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=xiao ./examples/ili9341/scroll
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=circuitplay-express ./examples/lis3dh/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/lsm303agr/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/lsm6ds3/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/mag3110/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/mcp23017/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/mcp23017-multiple/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/mcp3008/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/mcp2515/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/microbitmatrix/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/mma8653/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/mpu6050/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=p1am-100 ./examples/p1am/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/pcd8544/setbuffer/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/pcd8544/setpixel/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=pybadge ./examples/shifter/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/sht3x/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/ssd1306/i2c_128x32/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/ssd1306/spi_128x64/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/ssd1331/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/st7735/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/st7789/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=circuitplay-express ./examples/thermistor/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=circuitplay-bluefruit ./examples/tone
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/tm1637/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=pyportal ./examples/touch/resistive/fourwire/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=pyportal ./examples/touch/resistive/pyportal_touchpaint/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=itsybitsy-m0 ./examples/vl53l1x/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/waveshare-epd/epd2in13/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/waveshare-epd/epd2in13x/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=microbit ./examples/waveshare-epd/epd4in2/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/wifinina/ntpclient/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/wifinina/udpstation/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/wifinina/tcpclient/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/wifinina/webclient/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=circuitplay-express ./examples/ws2812
-	@md5sum ./build/test.hex
-ifneq ($(AVR), 0)
-	tinygo build -size short -o ./build/test.hex -target=arduino   ./examples/ws2812
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=digispark ./examples/ws2812
-	@md5sum ./build/test.hex
-endif
-	tinygo build -size short -o ./build/test.hex -target=trinket-m0 ./examples/bme280/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=circuitplay-express ./examples/microphone/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=circuitplay-express ./examples/buzzer/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=trinket-m0 ./examples/veml6070/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/l293x/simple/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/l293x/speed/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/l9110x/simple/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/l9110x/speed/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=nucleo-f103rb ./examples/shiftregister/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=hifive1b ./examples/ssd1351/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=circuitplay-express ./examples/lis2mdl/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino-nano33 ./examples/max72xx/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=feather-m0 ./examples/dht/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=arduino ./examples/keypad4x4/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=xiao ./examples/pcf8563/alarm/
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=xiao ./examples/pcf8563/clkout/
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=xiao ./examples/pcf8563/time/
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=xiao ./examples/pcf8563/timer/
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=feather-m0 ./examples/ina260/main.go
-	@md5sum ./build/test.hex
-	tinygo build -size short -o ./build/test.hex -target=nucleo-l432kc ./examples/aht20/main.go
-	@md5sum ./build/test.hex
+./build/%.hex:
+	@mkdir -p "$(@D)"
+	tinygo build -size short -o $@ -target=$(notdir $(basename $@)) $(subst build,./examples,$(dir $@))
+	@md5sum $@
+
+TARGETS = arduino arduino-nano33 bluepill circuitplay-bluefruit circuitplay-express \
+		digispark feather-m0 hifive1b itsybitsy-m0 microbit nucleo-f103rb nucleo-l432kc \
+		p1am-100 pybadge pyportal trinket-m0 xiao
+TARGET_TAGS = $(shell tinygo info $(target) | grep "build tags" | sed "s/build tags:\s*//" | tr -s ' ')
+EXAMPLES = $(dir $(shell find ./examples -type f -name 'main.go'))
+EXAMPLE_TAGS = $(subst // +build ,,$(shell head -1 $(example)main.go))
+EXAMPLE_TARGET_FILE = $(subst examples,build,$(example)$(target).hex)
+EXAMPLE_TARGET_FILES = $(if $(filter $(TARGET_TAGS),$(EXAMPLE_TAGS)),$(EXAMPLE_TARGET_FILE))
+EXAMPLE_HEX_FILES = $(foreach example,$(EXAMPLES),$(foreach target,$(TARGETS), $(EXAMPLE_TARGET_FILES)))
+
+smoke-test.mk: Makefile
+	for example_hex_file in $(EXAMPLE_HEX_FILES); do \
+		echo "smoke-test: $${example_hex_file}" >> smoke-test.mk; \
+	done
+
+-include smoke-test.mk
 
 DRIVERS = $(wildcard */)
 NOTESTS = build examples flash semihosting pcd8544 shiftregister st7789 microphone mcp3008 gps microbitmatrix \

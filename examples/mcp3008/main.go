@@ -1,3 +1,5 @@
+// +build itsybitsy_m0 
+
 // Connects to a MCP3008 ADC via SPI.
 package main
 

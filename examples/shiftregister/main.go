@@ -1,3 +1,5 @@
+// +build nucleo_f103rb 
+
 package main
 
 import (

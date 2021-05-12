@@ -1,3 +1,5 @@
+// +build bluepill 
+
 package main
 
 import (

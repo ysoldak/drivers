@@ -1,3 +1,5 @@
+// +build arduino_nano33
+
 // This is a sensor station that uses a ESP8266 or ESP32 running on the device UART1.
 // It creates an MQTT connection that publishes a message every second
 // to an MQTT broker.

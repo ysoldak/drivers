@@ -1,3 +1,5 @@
+// +build circuitplay_bluefruit 
+
 package main
 
 import (

@@ -1,3 +1,5 @@
+// +build pyportal 
+
 package main
 
 import (
