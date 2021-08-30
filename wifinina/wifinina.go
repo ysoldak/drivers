@@ -17,7 +17,6 @@ import (
 	"machine"
 
 	"tinygo.org/x/drivers"
-	"tinygo.org/x/drivers/net"
 )
 
 const _debug = false
@@ -294,9 +293,7 @@ func New(bus drivers.SPI, csPin, ackPin, gpio0Pin, resetPin machine.Pin) *Device
 	}
 }
 
-func (d *Device) Configure() {
-
-	net.UseDriver(d.NewDriver())
+func (d *Device) Reset() {
 	pinUseDevice(d)
 
 	d.CS.Configure(machine.PinConfig{Mode: machine.PinOutput})
@@ -313,7 +310,6 @@ func (d *Device) Configure() {
 
 	d.GPIO0.Low()
 	d.GPIO0.Configure(machine.PinConfig{Mode: machine.PinInput})
-
 }
 
 // ----------- client methods (should this be a separate struct?) ------------
