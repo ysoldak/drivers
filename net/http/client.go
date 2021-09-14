@@ -3,6 +3,8 @@ package http
 import (
 	"io"
 	"time"
+
+	"tinygo.org/x/drivers/net"
 )
 
 // A Client is an HTTP client. Its zero value (DefaultClient) is a
@@ -83,6 +85,8 @@ type Client struct {
 	// RoundTripper implementations should use the Request's Context
 	// for cancellation instead of implementing CancelRequest.
 	Timeout time.Duration
+
+	conn net.Conn
 }
 
 // DefaultClient is the default Client and is used by Get, Head, and Post.

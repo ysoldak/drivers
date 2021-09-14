@@ -37,14 +37,11 @@ func (c *Client) doHTTP(req *Request) (*Response, error) {
 		}
 	}
 
-	// make TCP connection
-	ip := net.ParseIP(req.URL.Host)
-	raddr := &net.TCPAddr{IP: ip, Port: 80}
-	laddr := &net.TCPAddr{Port: 8080}
-
-	conn, err := net.DialTCP("tcp", laddr, raddr)
+	var err error
+	c.conn, err = net.Dial("tcp", req.URL.Host)
+	// c.conn = conn1.(*net.TCPSerialConn)
 	retry := 0
-	for ; err != nil; conn, err = net.DialTCP("tcp", laddr, raddr) {
+	for ; err != nil; c.conn, err = net.Dial("tcp", req.URL.Host) {
 		retry++
 		if retry > 10 {
 			return nil, fmt.Errorf("Connection failed: %s", err.Error())
@@ -59,29 +56,29 @@ func (c *Client) doHTTP(req *Request) (*Response, error) {
 	if req.URL.RawQuery != "" {
 		p += "?" + req.URL.RawQuery
 	}
-	fmt.Fprintln(conn, req.Method+" "+p+" HTTP/1.1")
-	fmt.Fprintln(conn, "Host:", req.URL.Host)
+	fmt.Fprintln(c.conn, req.Method+" "+p+" HTTP/1.1")
+	fmt.Fprintln(c.conn, "Host:", req.URL.Host)
 
 	if req.Header.get(`User-Agent`) == "" {
-		fmt.Fprintln(conn, "User-Agent: TinyGo")
+		fmt.Fprintln(c.conn, "User-Agent: TinyGo")
 	}
 
 	for k, v := range req.Header {
 		if v == nil || len(v) == 0 {
 			return nil, fmt.Errorf("req.Header error: %s", k)
 		}
-		fmt.Fprintln(conn, k+": "+v[0])
+		fmt.Fprintln(c.conn, k+": "+v[0])
 	}
 
 	if req.Header.get(`Connection`) == "" {
-		fmt.Fprintln(conn, "Connection: close")
+		fmt.Fprintln(c.conn, "Connection: close")
 	}
 
 	if req.ContentLength > 0 {
-		fmt.Fprintf(conn, "Content-Length: %d\n", req.ContentLength)
+		fmt.Fprintf(c.conn, "Content-Length: %d\n", req.ContentLength)
 	}
 
-	fmt.Fprintln(conn)
+	fmt.Fprintln(c.conn)
 
 	if req.ContentLength > 0 {
 		b, err := req.GetBody()
@@ -93,24 +90,31 @@ func (c *Client) doHTTP(req *Request) (*Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		conn.Write(buf[:n])
+		c.conn.Write(buf[:n])
 
 		b.Close()
 
 	}
 
-	return c.doResp(conn, req)
+	return c.doResp(req)
 }
 
 func (c *Client) doHTTPS(req *Request) (*Response, error) {
-	conn, err := tls.Dial("tcp", req.URL.Host, nil)
-	retry := 0
-	for ; err != nil; conn, err = tls.Dial("tcp", req.URL.Host, nil) {
-		retry++
-		if retry > 10 {
-			return nil, fmt.Errorf("Connection failed: %s", err.Error())
+
+	raddr, err := net.ResolveTCPAddr("tcp", req.URL.Host)
+	if err != nil {
+		return nil, err
+	}
+	if c.conn == nil || c.conn.RemoteAddr().String() != raddr.String() {
+		c.conn, err = tls.Dial("tcp", req.URL.Host, nil)
+		retry := 0
+		for ; err != nil; c.conn, err = tls.Dial("tcp", req.URL.Host, nil) {
+			retry++
+			if retry > 10 {
+				return nil, fmt.Errorf("Connection failed: %s", err.Error())
+			}
+			time.Sleep(1 * time.Second)
 		}
-		time.Sleep(1 * time.Second)
 	}
 
 	p := req.URL.Path
@@ -120,29 +124,29 @@ func (c *Client) doHTTPS(req *Request) (*Response, error) {
 	if req.URL.RawQuery != "" {
 		p += "?" + req.URL.RawQuery
 	}
-	fmt.Fprintln(conn, req.Method+" "+p+" HTTP/1.1")
-	fmt.Fprintln(conn, "Host:", req.URL.Host)
+	fmt.Fprintln(c.conn, req.Method+" "+p+" HTTP/1.1")
+	fmt.Fprintln(c.conn, "Host:", req.URL.Host)
 
 	if req.Header.get(`User-Agent`) == "" {
-		fmt.Fprintln(conn, "User-Agent: TinyGo")
+		fmt.Fprintln(c.conn, "User-Agent: TinyGo")
 	}
 
 	for k, v := range req.Header {
 		if v == nil || len(v) == 0 {
 			return nil, fmt.Errorf("req.Header error: %s", k)
 		}
-		fmt.Fprintln(conn, k+": "+v[0])
+		fmt.Fprintln(c.conn, k+": "+v[0])
 	}
 
 	if req.Header.get(`Connection`) == "" {
-		fmt.Fprintln(conn, "Connection: close")
+		fmt.Fprintln(c.conn, "Connection: close")
 	}
 
 	if req.ContentLength > 0 {
-		fmt.Fprintf(conn, "Content-Length: %d\n", req.ContentLength)
+		fmt.Fprintf(c.conn, "Content-Length: %d\n", req.ContentLength)
 	}
 
-	fmt.Fprintln(conn)
+	fmt.Fprintln(c.conn)
 
 	if req.ContentLength > 0 {
 		b, err := req.GetBody()
@@ -154,16 +158,16 @@ func (c *Client) doHTTPS(req *Request) (*Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		conn.Write(buf[:n])
+		c.conn.Write(buf[:n])
 
 		b.Close()
 
 	}
 
-	return c.doResp(conn, req)
+	return c.doResp(req)
 }
 
-func (c *Client) doResp(conn net.Conn, req *Request) (*Response, error) {
+func (c *Client) doResp(req *Request) (*Response, error) {
 	resp := &Response{
 		Header: map[string][]string{},
 	}
@@ -174,7 +178,7 @@ func (c *Client) doResp(conn net.Conn, req *Request) (*Response, error) {
 	ofs := 0
 	remain := int64(0)
 	for cont {
-		for n, err := conn.Read(buf[ofs:]); n > 0; n, err = conn.Read(buf[ofs:]) {
+		for n, err := c.conn.Read(buf[ofs:]); n > 0; n, err = c.conn.Read(buf[ofs:]) {
 			if err != nil {
 				println("Read error: " + err.Error())
 			} else {
@@ -189,7 +193,8 @@ func (c *Client) doResp(conn net.Conn, req *Request) (*Response, error) {
 				if resp.Status == "" && scanner.Scan() {
 					status := strings.SplitN(scanner.Text(), " ", 2)
 					if len(status) != 2 {
-						conn.Close()
+						c.conn.Close()
+						c.conn = nil
 						return nil, fmt.Errorf("invalid status : %q", scanner.Text())
 					}
 					resp.Proto = status[0]
@@ -215,7 +220,8 @@ func (c *Client) doResp(conn net.Conn, req *Request) (*Response, error) {
 					} else {
 						header := strings.SplitN(text, ": ", 2)
 						if len(header) != 2 {
-							conn.Close()
+							c.conn.Close()
+							c.conn = nil
 							return nil, fmt.Errorf("invalid header : %q", text)
 						}
 						if resp.Header.Get(header[0]) == "" {
@@ -227,7 +233,8 @@ func (c *Client) doResp(conn net.Conn, req *Request) (*Response, error) {
 						if strings.ToLower(header[0]) == "content-length" {
 							resp.ContentLength, err = strconv.ParseInt(header[1], 10, 64)
 							if err != nil {
-								conn.Close()
+								c.conn.Close()
+								c.conn = nil
 								return nil, err
 							}
 							remain = resp.ContentLength
@@ -249,7 +256,11 @@ func (c *Client) doResp(conn net.Conn, req *Request) (*Response, error) {
 				c.Jar.SetCookies(req.URL, rc)
 			}
 		}
-		return resp, conn.Close()
+		if req.Close {
+			c.conn.Close()
+			c.conn = nil
+		}
+		return resp, nil
 	}
 
 	cont = true
@@ -260,12 +271,13 @@ func (c *Client) doResp(conn net.Conn, req *Request) (*Response, error) {
 			if len(buf) < end {
 				return nil, fmt.Errorf("slice out of range : use http.SetBuf() to change the allocation to %d bytes or more", end)
 			}
-			n, err := conn.Read(buf[ofs : ofs+0x400])
+			n, err := c.conn.Read(buf[ofs : ofs+0x400])
 			if n == 0 {
 				continue
 			}
 			if err != nil {
-				conn.Close()
+				c.conn.Close()
+				c.conn = nil
 				return nil, err
 			} else {
 				ofs += n
@@ -276,7 +288,8 @@ func (c *Client) doResp(conn net.Conn, req *Request) (*Response, error) {
 					break
 				}
 				if time.Now().Sub(lastRequestTime).Milliseconds() >= 1000 {
-					conn.Close()
+					c.conn.Close()
+					c.conn = nil
 					return nil, fmt.Errorf("time out")
 				}
 			}
@@ -289,5 +302,10 @@ func (c *Client) doResp(conn net.Conn, req *Request) (*Response, error) {
 		}
 	}
 
-	return resp, conn.Close()
+	if req.Close {
+		c.conn.Close()
+		c.conn = nil
+	}
+
+	return resp, nil
 }
