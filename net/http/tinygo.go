@@ -105,7 +105,7 @@ func (c *Client) doHTTPS(req *Request) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	if c.conn == nil || c.conn.RemoteAddr().String() != raddr.String() {
+	if c.conn == nil || c.conn.RemoteAddr() == nil || raddr == nil || c.conn.RemoteAddr().String() != raddr.String() {
 		c.conn, err = tls.Dial("tcp", req.URL.Host, nil)
 		retry := 0
 		for ; err != nil; c.conn, err = tls.Dial("tcp", req.URL.Host, nil) {
