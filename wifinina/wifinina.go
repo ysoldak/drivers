@@ -12,6 +12,7 @@ import (
 	"fmt" // used only in debug printouts and is optimized out when debugging is disabled
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"machine"
@@ -280,6 +281,8 @@ type Device struct {
 
 	buf   [64]byte
 	ssids [10]string
+
+	mu sync.Mutex
 }
 
 // New returns a new Wifinina driver.
@@ -294,6 +297,9 @@ func New(bus drivers.SPI, csPin, ackPin, gpio0Pin, resetPin machine.Pin) *Device
 }
 
 func (d *Device) Reset() {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
 	pinUseDevice(d)
 
 	d.CS.Configure(machine.PinConfig{Mode: machine.PinOutput})
@@ -315,6 +321,8 @@ func (d *Device) Reset() {
 // ----------- client methods (should this be a separate struct?) ------------
 
 func (d *Device) StartClient(hostname string, addr uint32, port uint16, sock uint8, mode uint8) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if _debug {
 		fmt.Printf("[StartClient] hostname: %s addr: % 02X, port: %d, sock: %d\r\n", hostname, addr, port, sock)
 	}
@@ -345,14 +353,20 @@ func (d *Device) StartClient(hostname string, addr uint32, port uint16, sock uin
 }
 
 func (d *Device) GetSocket() (uint8, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getUint8(d.req0(CmdGetSocket))
 }
 
 func (d *Device) GetClientState(sock uint8) (uint8, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getUint8(d.reqUint8(CmdGetClientStateTCP, sock))
 }
 
 func (d *Device) SendData(buf []byte, sock uint8) (uint16, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if err := d.waitForChipSelect(); err != nil {
 		d.spiChipDeselect()
 		return 0, err
@@ -366,6 +380,8 @@ func (d *Device) SendData(buf []byte, sock uint8) (uint16, error) {
 }
 
 func (d *Device) CheckDataSent(sock uint8) (bool, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	var lastErr error
 	for timeout := 0; timeout < 10; timeout++ {
 		sent, err := d.getUint8(d.reqUint8(CmdDataSentTCP, sock))
@@ -381,6 +397,8 @@ func (d *Device) CheckDataSent(sock uint8) (bool, error) {
 }
 
 func (d *Device) GetDataBuf(sock uint8, buf []byte) (int, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if err := d.waitForChipSelect(); err != nil {
 		d.spiChipDeselect()
 		return 0, err
@@ -401,6 +419,8 @@ func (d *Device) GetDataBuf(sock uint8, buf []byte) (int, error) {
 }
 
 func (d *Device) StopClient(sock uint8) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if _debug {
 		println("[StopClient] called StopClient()\r")
 	}
@@ -409,6 +429,8 @@ func (d *Device) StopClient(sock uint8) error {
 }
 
 func (d *Device) StartServer(port uint16, sock uint8, mode uint8) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if err := d.waitForChipSelect(); err != nil {
 		d.spiChipDeselect()
 		return err
@@ -425,6 +447,8 @@ func (d *Device) StartServer(port uint16, sock uint8, mode uint8) error {
 
 // InsertDataBuf adds data to the buffer used for sending UDP data
 func (d *Device) InsertDataBuf(buf []byte, sock uint8) (bool, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if err := d.waitForChipSelect(); err != nil {
 		d.spiChipDeselect()
 		return false, err
@@ -440,6 +464,8 @@ func (d *Device) InsertDataBuf(buf []byte, sock uint8) (bool, error) {
 
 // SendUDPData sends the data previously added to the UDP buffer
 func (d *Device) SendUDPData(sock uint8) (bool, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if err := d.waitForChipSelect(); err != nil {
 		d.spiChipDeselect()
 		return false, err
@@ -472,41 +498,59 @@ func (d *Device) SendUDPData(sock uint8) (bool, error) {
 */
 
 func (d *Device) Disconnect() error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	_, err := d.req1(CmdDisconnect)
 	return err
 }
 
 func (d *Device) GetFwVersion() (string, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getString(d.req0(CmdGetFwVersion))
 }
 
 func (d *Device) GetConnectionStatus() (ConnectionStatus, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	status, err := d.getUint8(d.req0(CmdGetConnStatus))
 	return ConnectionStatus(status), err
 }
 
 func (d *Device) GetCurrentEncryptionType() (EncryptionType, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	enctype, err := d.getUint8(d.req1(CmdGetCurrEncrType))
 	return EncryptionType(enctype), err
 }
 
 func (d *Device) GetCurrentBSSID() (MACAddress, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getMACAddress(d.req1(CmdGetCurrBSSID))
 }
 
 func (d *Device) GetCurrentRSSI() (int32, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getInt32(d.req1(CmdGetCurrRSSI))
 }
 
 func (d *Device) GetCurrentSSID() (string, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getString(d.req1(CmdGetCurrSSID))
 }
 
 func (d *Device) GetMACAddress() (MACAddress, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getMACAddress(d.req1(CmdGetMACAddr))
 }
 
 func (d *Device) GetIP() (ip, subnet, gateway IPAddress, err error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	sl := make([]string, 3)
 	if l, err := d.reqRspStr1(CmdGetIPAddr, dummyData, sl); err != nil {
 		return "", "", "", err
@@ -517,6 +561,8 @@ func (d *Device) GetIP() (ip, subnet, gateway IPAddress, err error) {
 }
 
 func (d *Device) GetHostByName(hostname string) (IPAddress, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	ok, err := d.getUint8(d.reqStr(CmdReqHostByName, hostname))
 	if err != nil {
 		return "", err
@@ -529,6 +575,8 @@ func (d *Device) GetHostByName(hostname string) (IPAddress, error) {
 }
 
 func (d *Device) GetNetworkBSSID(idx int) (MACAddress, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if idx < 0 || idx >= MaxNetworks {
 		return 0, nil
 	}
@@ -536,6 +584,8 @@ func (d *Device) GetNetworkBSSID(idx int) (MACAddress, error) {
 }
 
 func (d *Device) GetNetworkChannel(idx int) (uint8, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if idx < 0 || idx >= MaxNetworks {
 		return 0, nil
 	}
@@ -543,6 +593,8 @@ func (d *Device) GetNetworkChannel(idx int) (uint8, error) {
 }
 
 func (d *Device) GetNetworkEncrType(idx int) (EncryptionType, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if idx < 0 || idx >= MaxNetworks {
 		return 0, nil
 	}
@@ -551,6 +603,8 @@ func (d *Device) GetNetworkEncrType(idx int) (EncryptionType, error) {
 }
 
 func (d *Device) GetNetworkRSSI(idx int) (int32, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if idx < 0 || idx >= MaxNetworks {
 		return 0, nil
 	}
@@ -558,6 +612,8 @@ func (d *Device) GetNetworkRSSI(idx int) (int32, error) {
 }
 
 func (d *Device) GetNetworkSSID(idx int) string {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if idx < 0 || idx >= MaxNetworks {
 		return ""
 	}
@@ -565,15 +621,21 @@ func (d *Device) GetNetworkSSID(idx int) string {
 }
 
 func (d *Device) GetReasonCode() (uint8, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getUint8(d.req0(CmdGetReasonCode))
 }
 
 // GetTime is the time as a Unix timestamp
 func (d *Device) GetTime() (uint32, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getUint32(d.req0(CmdGetTime))
 }
 
 func (d *Device) GetTemperature() (float32, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getFloat32(d.req0(CmdGetTemperature))
 }
 
@@ -582,6 +644,8 @@ func (d *Device) Ping(ip IPAddress, ttl uint8) int16 {
 }
 
 func (d *Device) SetDebug(on bool) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	var v uint8
 	if on {
 		v = 1
@@ -591,16 +655,22 @@ func (d *Device) SetDebug(on bool) error {
 }
 
 func (d *Device) SetNetwork(ssid string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	_, err := d.reqStr(CmdSetNet, ssid)
 	return err
 }
 
 func (d *Device) SetPassphrase(ssid string, passphrase string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	_, err := d.reqStr2(CmdSetPassphrase, ssid, passphrase)
 	return err
 }
 
 func (d *Device) SetKey(ssid string, index uint8, key string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	defer d.spiChipDeselect()
 	if err := d.waitForChipSelect(); err != nil {
 		return err
@@ -622,11 +692,15 @@ func (d *Device) SetKey(ssid string, index uint8, key string) error {
 }
 
 func (d *Device) SetNetworkForAP(ssid string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	_, err := d.reqStr(CmdSetAPNet, ssid)
 	return err
 }
 
 func (d *Device) SetPassphraseForAP(ssid string, passphrase string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	_, err := d.reqStr2(CmdSetAPPassphrase, ssid, passphrase)
 	return err
 }
@@ -636,6 +710,8 @@ func (d *Device) SetIP(which uint8, ip uint32, gw uint32, subnet uint32) error {
 }
 
 func (d *Device) SetDNS(which uint8, dns1 uint32, dns2 uint32) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	defer d.spiChipDeselect()
 	if err := d.waitForChipSelect(); err != nil {
 		return err
@@ -655,6 +731,8 @@ func (d *Device) SetDNS(which uint8, dns1 uint32, dns2 uint32) error {
 }
 
 func (d *Device) SetHostname(hostname string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	defer d.spiChipDeselect()
 	if err := d.waitForChipSelect(); err != nil {
 		return err
@@ -674,29 +752,41 @@ func (d *Device) SetHostname(hostname string) error {
 }
 
 func (d *Device) SetPowerMode(mode uint8) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	_, err := d.reqUint8(CmdSetPowerMode, mode)
 	return err
 }
 
 func (d *Device) ScanNetworks() (uint8, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.reqRspStr0(CmdScanNetworks, d.ssids[:])
 }
 
 func (d *Device) StartScanNetworks() (uint8, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	return d.getUint8(d.req0(CmdStartScanNetworks))
 }
 
 func (d *Device) PinMode(pin uint8, mode uint8) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	_, err := d.req2Uint8(CmdSetPinMode, pin, mode)
 	return err
 }
 
 func (d *Device) DigitalWrite(pin uint8, value uint8) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	_, err := d.req2Uint8(CmdSetDigitalWrite, pin, value)
 	return err
 }
 
 func (d *Device) AnalogWrite(pin uint8, value uint8) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	_, err := d.req2Uint8(CmdSetAnalogWrite, pin, value)
 	return err
 }

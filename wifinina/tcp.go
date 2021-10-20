@@ -93,7 +93,6 @@ func (drv *Driver) HandleWifi() error {
 		// problems communicating with the device, reset device
 		if err != nil {
 			drv.dev.Reset()
-			time.Sleep(time.Second)
 			continue
 		}
 
@@ -120,7 +119,6 @@ func (drv *Driver) HandleWifi() error {
 		// problems communicating with the device, reset device
 		if err != nil {
 			drv.dev.Reset()
-			time.Sleep(time.Second)
 		}
 
 	}
@@ -133,7 +131,6 @@ func (drv *Driver) searchAccessPoint() *accessPoint {
 	// problems communicating with the device, reset device
 	if err != nil {
 		drv.dev.Reset()
-		time.Sleep(time.Second)
 		return nil
 	}
 	for i := 0; i < int(count); i++ {
