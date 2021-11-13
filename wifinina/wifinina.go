@@ -316,6 +316,8 @@ func (d *Device) Reset() {
 
 	d.GPIO0.Low()
 	d.GPIO0.Configure(machine.PinConfig{Mode: machine.PinInput})
+
+	time.Sleep(500 * time.Millisecond)
 }
 
 // ----------- client methods (should this be a separate struct?) ------------
