@@ -36,6 +36,8 @@ var DefaultDeviceIdentifier = DeviceIdentifierFunc(func(id JedecID) Attrs {
 		return S25FL216K()
 	case 0x1F4501:
 		return AT25DF081A()
+	case 0x1F8901:
+		return AT25SF128A()
 	case 0xC22015:
 		return MX25L1606()
 	case 0xC22016:
@@ -140,6 +142,25 @@ func AT25DF081A() Attrs {
 		HasSectorProtection: true,
 		SupportsFastRead:    true,
 		SupportsQSPI:        false,
+		SupportsQSPIWrites:  false,
+		WriteStatusSplit:    false,
+		SingleStatusByte:    false,
+	}
+}
+
+// Settings for the Adesto Tech AT25SF128A 16MiB SPI flash.
+// Nano RP2040 Connect board has it.
+// Datasheet: https://www.dialog-semiconductor.com/sites/default/files/2021-08/DS-AT25SF128A-168I-062021.pdf
+func AT25SF128A() Attrs {
+	return Attrs{
+		TotalSize:           1 << 24, // 16 MiB
+		StartUp:             10000 * time.Microsecond,
+		JedecID:             JedecID{0x1F, 0x89, 0x01},
+		MaxClockSpeedMHz:    133,
+		QuadEnableBitMask:   0x02,
+		HasSectorProtection: true,
+		SupportsFastRead:    true,
+		SupportsQSPI:        true,
 		SupportsQSPIWrites:  false,
 		WriteStatusSplit:    false,
 		SingleStatusByte:    false,
