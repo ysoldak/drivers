@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt" // used only in debug printouts and is optimized out when debugging is disabled
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -393,7 +394,7 @@ func (d *Device) CheckDataSent(sock uint8) (bool, error) {
 		if sent > 0 {
 			return true, nil
 		}
-		time.Sleep(100 * time.Microsecond)
+		runtime.Gosched()
 	}
 	return false, lastErr
 }
@@ -1126,7 +1127,7 @@ func (d *Device) waitForChipReady() error {
 		if !d.ACK.Get() {
 			return nil
 		}
-		time.Sleep(1 * time.Millisecond)
+		runtime.Gosched()
 	}
 	return ErrTimeoutChipReady
 }
@@ -1141,7 +1142,7 @@ func (d *Device) spiChipSelect() error {
 		if d.ACK.Get() {
 			return nil
 		}
-		time.Sleep(100 * time.Microsecond)
+		runtime.Gosched()
 	}
 	return ErrTimeoutChipSelect
 }

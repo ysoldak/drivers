@@ -2,6 +2,7 @@ package wifinina
 
 import (
 	"errors"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -84,6 +85,8 @@ func (drv *Driver) HandleWifi() error {
 
 	for {
 
+		runtime.Gosched()
+
 		// global timeout elapsed, throw
 		if !stopTime.IsZero() && time.Now().After(stopTime) {
 			return errors.New("global wifi timeout elapsed")
@@ -103,7 +106,6 @@ func (drv *Driver) HandleWifi() error {
 
 		// not connected and connection timeout not expired yet, just wait
 		if st == StatusNoSSIDAvail && activeAccessPoint != nil && time.Now().Before(reconnectTime) {
-			time.Sleep(time.Second)
 			continue
 		}
 
@@ -215,7 +217,7 @@ func (drv *Driver) connectSocket(addr, portStr string, mode uint8) error {
 		if connected {
 			return nil
 		}
-		time.Sleep(1 * time.Millisecond)
+		runtime.Gosched()
 	}
 
 	return ErrConnectionTimeout
@@ -409,7 +411,7 @@ func (drv *Driver) stop() error {
 		if st == TCPStateClosed {
 			break
 		}
-		time.Sleep(1 * time.Millisecond)
+		runtime.Gosched()
 	}
 	drv.sock = NoSocketAvail
 	return nil
