@@ -207,9 +207,8 @@ func (drv *Driver) connectSocket(addr, portStr string, mode uint8) error {
 		return err
 	}
 
-	// FIXME: this 4 second timeout is simply mimicking the Arduino driver
 	start := time.Now()
-	for time.Since(start) < 4*time.Second {
+	for time.Since(start) < 10*time.Second {
 		connected, err := drv.IsConnected()
 		if err != nil {
 			return err
@@ -217,6 +216,7 @@ func (drv *Driver) connectSocket(addr, portStr string, mode uint8) error {
 		if connected {
 			return nil
 		}
+		time.Sleep(10 * time.Millisecond)
 		runtime.Gosched()
 	}
 
@@ -377,6 +377,13 @@ func (drv *Driver) IsConnected() (bool, error) {
 	if drv.sock == NoSocketAvail {
 		return false, nil
 	}
+	n, err := drv.available()
+	if err != nil {
+		return false, err
+	}
+	if n > 0 {
+		return true, nil
+	}
 	s, err := drv.status()
 	if err != nil {
 		return false, err
@@ -384,12 +391,9 @@ func (drv *Driver) IsConnected() (bool, error) {
 	isConnected := !(s == TCPStateListen || s == TCPStateClosed ||
 		s == TCPStateFinWait1 || s == TCPStateFinWait2 || s == TCPStateTimeWait ||
 		s == TCPStateSynSent || s == TCPStateSynRcvd || s == TCPStateCloseWait)
-	// TODO: investigate if the below is necessary (as per Arduino driver)
-	//if !isConnected {
-	//	//close socket buffer?
-	//	WiFiSocketBuffer.close(_sock);
-	//	_sock = 255;
-	//}
+	if !isConnected {
+		drv.sock = NoSocketAvail
+	}
 	return isConnected, nil
 }
 
@@ -404,13 +408,20 @@ func (drv *Driver) stop() error {
 	if drv.sock == NoSocketAvail {
 		return nil
 	}
-	drv.dev.StopClient(drv.sock)
+	err := drv.dev.StopClient(drv.sock)
+	if err != nil {
+		return err
+	}
 	start := time.Now()
 	for time.Since(start) < 5*time.Second {
-		st, _ := drv.status()
+		st, err := drv.status()
+		if err != nil {
+			return err
+		}
 		if st == TCPStateClosed {
 			break
 		}
+		time.Sleep(100 * time.Millisecond)
 		runtime.Gosched()
 	}
 	drv.sock = NoSocketAvail
