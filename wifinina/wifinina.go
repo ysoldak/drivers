@@ -313,13 +313,18 @@ func (d *Device) Configure() {
 	d.GPIO0.High()
 	d.CS.High()
 	d.RESET.Low()
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 	d.RESET.High()
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(750 * time.Millisecond)
 
 	d.GPIO0.Low()
 	d.GPIO0.Configure(machine.PinConfig{Mode: machine.PinInput})
 
+}
+
+func (d *Device) Stop() {
+	d.RESET.Low()
+	d.CS.Configure(machine.PinConfig{Mode: machine.PinInput})
 }
 
 // ----------- client methods (should this be a separate struct?) ------------
@@ -1015,6 +1020,9 @@ func (d *Device) sendParam8(p uint8, isLastParam bool) (l int) {
 }
 
 func (d *Device) sendParam16(p uint16, isLastParam bool) (l int) {
+	if _debug {
+		println("sendParam16:", p, "lastParam:", isLastParam, "\r")
+	}
 	l = 3
 	d.SPI.Transfer(2)
 	d.SPI.Transfer(uint8(p >> 8))
@@ -1027,6 +1035,9 @@ func (d *Device) sendParam16(p uint16, isLastParam bool) (l int) {
 }
 
 func (d *Device) sendParam32(p uint32, isLastParam bool) (l int) {
+	if _debug {
+		println("sendParam32:", p, "lastParam:", isLastParam, "\r")
+	}
 	l = 5
 	d.SPI.Transfer(4)
 	d.SPI.Transfer(uint8(p >> 24))
